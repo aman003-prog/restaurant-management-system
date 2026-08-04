@@ -1,6 +1,4 @@
-# User APIs
-
-Base URL
+# Base URL
 
 ```
 /api/
@@ -161,3 +159,13 @@ Returns
     "detail": "Address deletion is temporarily disabled. This feature will require password confirmation and/or email verification."
 }
 ```
+
+---
+
+## Categories
+
+### GET `/users/addresses/<id>/`
+
+Returns a single address if it belongs to the authenticated user.
+
+---

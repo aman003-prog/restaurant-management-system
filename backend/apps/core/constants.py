@@ -1,0 +1,7 @@
+MANAGER_GROUP = "Manager"
+
+DELIVERY_CREW_GROUP = "Delivery Crew"
+
+KITCHEN_STAFF_GROUP = "Kitchen Staff"
+
+SAFE_METHODS = ["GET", "HEAD", "OPTIONS",]

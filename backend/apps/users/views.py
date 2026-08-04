@@ -7,9 +7,9 @@ from rest_framework import status
 
 # Create your views here.
 class UserProfileView(generics.RetrieveUpdateDestroyAPIView):
-    serializer_class=UserProfileSerializer
-    permission_classes=[IsAuthenticated]
-    queryset=User.objects.all()
+    serializer_class = UserProfileSerializer
+    permission_classes = [IsAuthenticated]
+    queryset = User.objects.all()
 
     def get_object(self):
         return self.request.user
@@ -27,8 +27,8 @@ class UserProfileView(generics.RetrieveUpdateDestroyAPIView):
         )
 
 class AddressView(generics.ListCreateAPIView):
-    serializer_class=AddressSerializer
-    permission_classes=[IsAuthenticated]
+    serializer_class = AddressSerializer
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         return Address.objects.filter(user=self.request.user)
@@ -43,18 +43,18 @@ class AddressView(generics.ListCreateAPIView):
         serializer.save(user=self.request.user)
 
 class SingleAddressView(generics.RetrieveUpdateDestroyAPIView):
-    serializer_class=AddressSerializer
-    permission_classes=[IsAuthenticated]
+    serializer_class = AddressSerializer
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return Address.objects.filter(user=self.request.user)
+        return Address.objects.filter(user = self.request.user)
 
     def perform_update(self, serializer):
         if serializer.validated_data.get("is_default"):
             Address.objects.filter(
                 user=self.request.user,
                 is_default=True
-            ).exclude(pk=serializer.instance.pk).update(is_default=False)
+            ).exclude(pk=serializer.instance.pk).update(is_default = False)
 
         serializer.save()
 

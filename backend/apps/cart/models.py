@@ -1,0 +1,24 @@
+from django.db import models
+from apps.core.models import TimeStampedModel
+from django.conf.global_settings import AUTH_USER_MODEL
+from apps.menu.models import MenuItem
+
+# Create your models here.
+class Cart(TimeStampedModel):
+    user = models.ForeignKey(AUTH_USER_MODEL, on_delete=models.CASCADE)
+    menu_item = models.ForeignKey(MenuItem, on_delete=models.CASCADE)
+    quantity = models.SmallIntegerField()
+    unit_price = models.DecimalField(max_digits=6, decimal_places=2, )
+    price = models.DecimalField(max_digits=6, decimal_places=2, )
+
+    def __str__(self):
+        return f"{self.user.username}"
+
+    class Meta:
+        ordering = ["menu_item"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "menu_item"],
+                name="unique_user_menu-item",
+            ),
+        ]

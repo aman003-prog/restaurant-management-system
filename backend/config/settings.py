@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     "apps.core",
     "apps.categories",
     "apps.menu",
+    "apps.cart",
 ]
 
 MIDDLEWARE = [

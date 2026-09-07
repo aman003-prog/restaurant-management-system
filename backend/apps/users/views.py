@@ -1,11 +1,17 @@
 from rest_framework import generics
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from .models import User, Address
-from .serializers import UserProfileSerializer, AddressSerializer
+from .serializers import UserProfileSerializer, AddressSerializer, UserRegistrationSerializer
 from rest_framework.response import Response
 from rest_framework import status
 
 # Create your views here.
+class RegisterView(generics.CreateAPIView):
+    queryset = User.objects.all()
+    permission_classes = [AllowAny]
+    serializer_class = UserRegistrationSerializer
+
+
 class UserProfileView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = UserProfileSerializer
     permission_classes = [IsAuthenticated]

@@ -3,9 +3,11 @@ from .models import Order, OrderItem
 from apps.menu.models import MenuItem
 from django.db import transaction
 from apps.cart.models import Cart
+from apps.coupons.models import Coupon
 
 class OrderItemSerializer(serializers.ModelSerializer):
     menu_item = serializers.PrimaryKeyRelatedField(queryset=MenuItem.objects.all())
+    
     class Meta:
         model = OrderItem
         fields = [
@@ -58,23 +60,66 @@ class OrderSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         user = validated_data["user"]
-        
+        coupon_code = validated_data.pop("coupon_code", None)
+
         with transaction.atomic():
             cart_items = Cart.objects.filter(user=user)
             if not cart_items.exists():
                 raise serializers.ValidationError({"detail": "Cart is empty."})
 
-            order = Order.objects.create(user=user, total=0)
-            
-            total = 0
-            order_items = []
-            for item in cart_items:
-                total += item.price
-                order_items.append(OrderItem(order=order, menu_item=item.menu_item, quantity=item.quantity, unit_price=item.unit_price, price=item.price, ))
+            # Calculate base cart subtotal
+            cart_subtotal = sum(item.price for item in cart_items)
+
+            # Validate coupon if provided
+            coupon_obj = None
+            discount_amount = 0.00
+
+            if coupon_code:
+                code_formatted = coupon_code.strip().upper()
+                try:
+                    coupon_obj = Coupon.objects.get(code=code_formatted)
+                except Coupon.DoesNotExist:
+                    raise serializers.ValidationError(
+                        {"coupon_code": "Invalid coupon code."}
+                    )
+
+                if not coupon_obj.is_valid:
+                    raise serializers.ValidationError(
+                        {"coupon_code": "This coupon is inactive or expired."}
+                    )
+
+                if cart_subtotal < coupon_obj.min_order_amount:
+                    raise serializers.ValidationError(
+                        {
+                            "coupon_code": f"Minimum order total of {coupon_obj.min_order_amount} required for this coupon."
+                        }
+                    )
+
+                discount_amount = coupon_obj.calculate_discount(cart_subtotal)
+
+            final_total = max(cart_subtotal - discount_amount, 0)
+
+            # Create Order instance with discount metadata
+            order = Order.objects.create(
+                user=user,
+                coupon=coupon_obj,
+                discount_amount=discount_amount,
+                total=final_total,
+            )
+
+            # Copy cart items to order items
+            order_items = [
+                OrderItem(
+                    order=order,
+                    menu_item=item.menu_item,
+                    quantity=item.quantity,
+                    unit_price=item.unit_price,
+                    price=item.price,
+                )
+                for item in cart_items
+            ]
 
             OrderItem.objects.bulk_create(order_items)
-            order.total = total
-            order.save()
             cart_items.delete()
 
             return order

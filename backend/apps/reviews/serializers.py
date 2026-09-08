@@ -4,10 +4,8 @@ from .models import Review
 
 
 class ReviewSerializer(serializers.ModelSerializer):
-    user = serializers.HiddenField(default=serializers.CurrentUserDefault())
-    menu_item = serializers.PrimaryKeyRelatedField(
-        queryset=MenuItem.objects.all()
-    )
+    user = serializers.ReadOnlyField(source="user.username")
+    menu_item = serializers.ReadOnlyField(source="menu_item.id")
 
     class Meta:
         model = Review

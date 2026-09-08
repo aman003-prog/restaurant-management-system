@@ -1,9 +1,9 @@
-from rest_framework import generics
+from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from .models import User, Address
 from .serializers import UserProfileSerializer, AddressSerializer, UserRegistrationSerializer
 from rest_framework.response import Response
-from rest_framework import status
+from django.db import transaction
 
 # Create your views here.
 class RegisterView(generics.CreateAPIView):
@@ -40,13 +40,13 @@ class AddressView(generics.ListCreateAPIView):
         return Address.objects.filter(user=self.request.user)
 
     def perform_create(self, serializer):
-        if serializer.validated_data["is_default"]:
-            Address.objects.filter(
-                user=self.request.user,
-                is_default=True
-            ).update(is_default=False)
+        with transaction.atomic():
+            if serializer.validated_data.get("is_default"):
+                Address.objects.filter(
+                    user=self.request.user, is_default=True
+                ).update(is_default=False)
 
-        serializer.save(user=self.request.user)
+            serializer.save(user=self.request.user)
 
 class SingleAddressView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = AddressSerializer
@@ -56,13 +56,13 @@ class SingleAddressView(generics.RetrieveUpdateDestroyAPIView):
         return Address.objects.filter(user = self.request.user)
 
     def perform_update(self, serializer):
-        if serializer.validated_data.get("is_default"):
-            Address.objects.filter(
-                user=self.request.user,
-                is_default=True
-            ).exclude(pk=serializer.instance.pk).update(is_default = False)
+        with transaction.atomic():
+            if serializer.validated_data.get("is_default"):
+                Address.objects.filter(
+                    user=self.request.user, is_default=True
+                ).exclude(pk=serializer.instance.pk).update(is_default=False)
 
-        serializer.save()
+            serializer.save()
 
     def delete(self, request, *args, **kwargs):
         return Response(

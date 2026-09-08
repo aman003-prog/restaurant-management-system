@@ -16,6 +16,9 @@ class CategoriesView(generics.ListCreateAPIView):
     ordering_fields = ["title", "created_at"]
 
     def get_queryset(self):
+        user = self.request.user
+        if user.is_authenticated and (user.is_superuser or user.groups.filter(name="Manager").exists()):
+            return Category.objects.all()
         return Category.objects.filter(is_active=True)
 
     def get_permissions(self):

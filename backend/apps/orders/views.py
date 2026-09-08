@@ -53,18 +53,15 @@ class SingleOrderView(generics.RetrieveUpdateDestroyAPIView):
 
     def patch(self, request, *args, **kwargs):
         user = request.user
-
-        # Delivery crew can only update the status field
-        if not (user.is_superuser or user.groups.filter(name=MANAGER_GROUP).exists()):
-            if user.groups.filter(name=DELIVERY_CREW_GROUP).exists():
-                allowed_fields = {"status"}
-                incoming_fields = set(request.data.keys())
-                if not incoming_fields.issubset(allowed_fields):
-                    return Response(
-                        {"detail": "Delivery crew can only update the order status."},
-                        status=status.HTTP_403_FORBIDDEN,
-                    )
-
+        is_manager = user.is_superuser or user.groups.filter(name=MANAGER_GROUP).exists()
+        is_delivery = user.groups.filter(name=DELIVERY_CREW_GROUP).exists()
+        is_kitchen = user.groups.filter(name=KITCHEN_STAFF_GROUP).exists()
+        
+        if not (is_manager or is_delivery or is_kitchen):
+            return Response(
+                {"detail": "Customers cannot modify order status or details."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
         return super().patch(request, *args, **kwargs)
 
 

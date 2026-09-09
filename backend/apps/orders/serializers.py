@@ -35,6 +35,8 @@ class OrderItemSerializer(serializers.ModelSerializer):
 class OrderSerializer(serializers.ModelSerializer):
     user = serializers.HiddenField(default=serializers.CurrentUserDefault())
     items = OrderItemSerializer(many=True, read_only=True)
+    coupon_code = serializers.CharField(write_only=True, required=False, allow_blank=True)
+
     class Meta:
         model = Order
         fields = [
@@ -44,6 +46,7 @@ class OrderSerializer(serializers.ModelSerializer):
             "status",
             "total",
             "items",
+            "coupon_code",
         ]
         read_only_fields = [
             "id",

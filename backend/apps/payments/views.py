@@ -3,6 +3,8 @@ from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 
+from apps.orders.models import Order
+
 from .models import Payment
 from .serializers import PaymentSerializer
 
@@ -35,7 +37,7 @@ class ProcessPaymentView(generics.CreateAPIView):
             payment.save()
 
         # Update order status once payment is confirmed
-        order.status = True
+        order.status = Order.StatusChoices.CONFIRMED
         order.save()
 
         return Response(

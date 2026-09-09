@@ -25,7 +25,7 @@ class OrderView(generics.ListCreateAPIView):
 
         # Kitchen Staff: pending orders that need preparation
         if user.groups.filter(name=KITCHEN_STAFF_GROUP).exists():
-            return queryset.filter(status=False)
+            return queryset.filter(status__in=[Order.StatusChoices.CONFIRMED, Order.StatusChoices.PREPARING])
 
         # Delivery Crew: only assigned orders
         if user.groups.filter(name=DELIVERY_CREW_GROUP).exists():

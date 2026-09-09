@@ -3,6 +3,7 @@ from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from apps.orders.models import Order
 from apps.core.permissions import IsDeliveryCrew, IsManager
 
 from .models import DeliveryAssignment, DeliveryPartner
@@ -49,7 +50,7 @@ class DeliveryAssignmentDetailView(generics.RetrieveUpdateAPIView):
 
         # If delivered, mark order fulfilled & release partner back to AVAILABLE
         if assignment.status == DeliveryAssignment.AssignmentStatus.DELIVERED:
-            assignment.order.status = True
+            assignment.order.status = Order.StatusChoices.DELIVERED
             assignment.order.save()
 
             partner = assignment.partner

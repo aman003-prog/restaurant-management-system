@@ -52,9 +52,13 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "date_of_birth",
             "profile_image",
             "is_active",
+            "is_staff",
+            "is_superuser",
         ]
         read_only_fields = [
             "id",
+            "is_staff",
+            "is_superuser",
         ]
 
 
